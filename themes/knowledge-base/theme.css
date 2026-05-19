@@ -1,0 +1,315 @@
+/* =============================================
+ * Knowledge Base 主题 - Obsidian Theme
+ * 移植自 knowledge-base/app/style.css
+ * ============================================= */
+
+/* ===== 深色主题变量 ===== */
+.theme-dark {
+  --background-primary: #1a1a2e;
+  --background-secondary: #16213e;
+  --background-secondary-alt: #0f0f23;
+  --background-modifier-border: #27273a;
+  --text-normal: #e4e4e7;
+  --text-muted: #a1a1aa;
+  --text-faint: #71717a;
+  --interactive-accent: #6366f1;
+  --interactive-accent-hover: #818cf8;
+
+  /* 自定义变量 */
+  --kb-bg-editor: #0d1117;
+  --kb-accent: #6366f1;
+  --kb-accent-hover: #818cf8;
+  --kb-heading2: #a5b4fc;
+  --kb-strong: #fbbf24;
+  --kb-inline-code: #f472b6;
+  --kb-inline-code-bg: rgba(255, 255, 255, 0.08);
+  --kb-pre-bg: #0d1117;
+  --kb-blockquote-bg: rgba(99, 102, 241, 0.08);
+  --kb-blockquote-border: #6366f1;
+  --kb-link: #6366f1;
+  --kb-border: #27273a;
+}
+
+/* ===== 亮色主题变量 ===== */
+.theme-light {
+  --background-primary: #ffffff;
+  --background-secondary: #f8fafc;
+  --background-secondary-alt: #f1f5f9;
+  --background-modifier-border: #e2e8f0;
+  --text-normal: #1e293b;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --interactive-accent: #6366f1;
+  --interactive-accent-hover: #4f46e5;
+
+  --kb-bg-editor: #ffffff;
+  --kb-accent: #6366f1;
+  --kb-accent-hover: #4f46e5;
+  --kb-heading2: #4f46e5;
+  --kb-strong: #d97706;
+  --kb-inline-code: #db2777;
+  --kb-inline-code-bg: rgba(0, 0, 0, 0.05);
+  --kb-pre-bg: #1e293b;
+  --kb-blockquote-bg: rgba(99, 102, 241, 0.06);
+  --kb-blockquote-border: #6366f1;
+  --kb-link: #6366f1;
+  --kb-border: #e2e8f0;
+}
+
+/* ===== 全局字体 ===== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+}
+
+/* ===== 编辑器背景 ===== */
+.markdown-source-view.mod-cm6 .cm-editor {
+  background: var(--kb-bg-editor);
+}
+
+/* ===== 标题样式 ===== */
+.markdown-rendered h1,
+.markdown-preview-view h1 {
+  font-size: 1.8em;
+  margin: 0.4em 0 0.6em;
+  border-bottom: 1px solid var(--kb-border);
+  padding-bottom: 0.3em;
+}
+
+.markdown-rendered h2,
+.markdown-preview-view h2 {
+  font-size: 1.4em;
+  margin: 1em 0 0.5em;
+  color: var(--kb-heading2);
+}
+
+.markdown-rendered h3,
+.markdown-preview-view h3 {
+  font-size: 1.15em;
+  margin: 1em 0 0.5em;
+}
+
+.markdown-rendered h4,
+.markdown-preview-view h4 {
+  font-size: 1em;
+  margin: 0.8em 0 0.4em;
+  color: var(--text-muted);
+}
+
+/* ===== 段落 ===== */
+.markdown-rendered p,
+.markdown-preview-view p {
+  margin: 0.6em 0;
+  line-height: 1.7;
+}
+
+/* ===== 列表 ===== */
+.markdown-rendered ul,
+.markdown-rendered ol,
+.markdown-preview-view ul,
+.markdown-preview-view ol {
+  margin: 0.6em 0;
+  padding-left: 1.8em;
+}
+
+.markdown-rendered li,
+.markdown-preview-view li {
+  margin: 0.25em 0;
+  line-height: 1.6;
+}
+
+/* ===== 加粗文字（金色/琥珀色） ===== */
+.markdown-rendered strong,
+.markdown-preview-view strong {
+  color: var(--kb-strong);
+}
+
+/* ===== 链接 ===== */
+.markdown-rendered a,
+.markdown-preview-view a {
+  color: var(--kb-link);
+  text-decoration: none;
+}
+
+.markdown-rendered a:hover,
+.markdown-preview-view a:hover {
+  text-decoration: underline;
+}
+
+/* ===== 引用块 ===== */
+.markdown-rendered blockquote,
+.markdown-preview-view blockquote {
+  border-left: 3px solid var(--kb-blockquote-border);
+  margin: 0.8em 0;
+  padding: 0.4em 1em;
+  background: var(--kb-blockquote-bg);
+  border-radius: 0 5px 5px 0;
+  color: var(--text-muted);
+}
+
+/* ===== 行内代码（粉色） ===== */
+.markdown-rendered code:not(pre code),
+.markdown-preview-view code:not(pre code),
+.cm-s-obsidian span.cm-inline-code {
+  background: var(--kb-inline-code-bg);
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+  font-size: 0.88em;
+  color: var(--kb-inline-code);
+}
+
+/* ===== 代码块 ===== */
+.markdown-rendered pre,
+.markdown-preview-view pre {
+  background: var(--kb-pre-bg);
+  padding: 14px 18px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+  border: 1px solid var(--kb-border);
+}
+
+.markdown-rendered pre code,
+.markdown-preview-view pre code {
+  background: none !important;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-normal);
+  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+}
+
+/* 亮色主题下代码块内文字用浅色 */
+.theme-light .markdown-rendered pre code,
+.theme-light .markdown-preview-view pre code {
+  color: #e4e4e7;
+}
+
+/* ===== 表格 ===== */
+.markdown-rendered table,
+.markdown-preview-view table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+  font-size: 14px;
+}
+
+.markdown-rendered th,
+.markdown-rendered td,
+.markdown-preview-view th,
+.markdown-preview-view td {
+  border: 1px solid var(--kb-border);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.markdown-rendered th,
+.markdown-preview-view th {
+  background: var(--background-secondary);
+}
+
+/* 表格斑马纹 */
+.markdown-rendered tr:nth-child(even),
+.markdown-preview-view tr:nth-child(even) {
+  background: rgba(99, 102, 241, 0.03);
+}
+
+/* 表格悬停高亮 */
+.markdown-rendered tr:hover,
+.markdown-preview-view tr:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+/* ===== 图片 ===== */
+.markdown-rendered img,
+.markdown-preview-view img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+
+/* ===== 分割线 ===== */
+.markdown-rendered hr,
+.markdown-preview-view hr {
+  border: none;
+  border-top: 1px solid var(--kb-border);
+  margin: 1.5em 0;
+}
+
+/* ===== 数学公式 ===== */
+.math-block {
+  margin: 16px 0;
+  padding: 16px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* ===== 滚动条美化 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--kb-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f5a;
+}
+
+/* ===== Mermaid 图表优化 ===== */
+.theme-dark .mermaid text,
+.theme-dark .mermaid tspan {
+  fill: #f3f4f6 !important;
+}
+
+.theme-dark .mermaid .flowchart-link,
+.theme-dark .mermaid path.path,
+.theme-dark .mermaid line {
+  stroke: #ffffff !important;
+}
+
+.theme-dark .mermaid marker path {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* ===== 搜索高亮 ===== */
+.search-result-file-matched-text {
+  background: rgba(99, 102, 241, 0.4);
+  color: var(--text-normal);
+}
+
+/* ===== 文件管理器（侧边栏）悬停效果 ===== */
+.nav-file-title:hover,
+.nav-folder-title:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.nav-file-title.is-active {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--kb-accent);
+}
+
+/* ===== 标签样式 ===== */
+.tag {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--kb-accent);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.tag:hover {
+  background: rgba(99, 102, 241, 0.25);
+}
+
+/* ===== 复选框任务列表 ===== */
+.markdown-rendered .task-list-item-checkbox:checked {
+  background-color: var(--kb-accent);
+  border-color: var(--kb-accent);
+}

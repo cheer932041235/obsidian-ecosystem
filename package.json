@@ -1,0 +1,17 @@
+{
+  "name": "obsidian-ecosystem",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal collection of Obsidian plugins and themes.",
+  "scripts": {
+    "build:edge-tts": "npm --prefix plugins/edge-tts run build",
+    "build:presenter": "npm --prefix plugins/presenter run build"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "obsidian-theme"
+  ],
+  "author": "cheer932041235",
+  "license": "SEE LICENSE IN EACH SUBPROJECT"
+}

@@ -1,0 +1,10 @@
+{
+	"id": "edge-tts",
+	"name": "Edge TTS 中文朗读",
+	"version": "3.4.3",
+	"minAppVersion": "1.7.0",
+	"description": "中文化的 Obsidian 语音朗读面板，使用 Microsoft Edge Read Aloud API。",
+	"author": "疏锦行",
+	"authorUrl": "https://github.com/cheer932041235",
+	"isDesktopOnly": false
+}

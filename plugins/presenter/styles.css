@@ -1,0 +1,118 @@
+.presenter-canvas {
+  z-index: 9999;
+  pointer-events: none;
+  touch-action: none;
+  background: transparent;
+}
+
+/* ─── Tool cursors ─── */
+
+/* Pen: red pencil, right-hand grip — tip upper-left, body to lower-right */
+body.presenter-tool-pen,
+body.presenter-tool-pen * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M9.5 6.5L23.5 20.5 20.5 23.5 6.5 9.5z' fill='%23ef4444' stroke='%23991b1b' stroke-width='.5' stroke-linejoin='round'/%3E%3Cpath d='M9.5 6.5L3.5 3.5 6.5 9.5z' fill='%234b5563'/%3E%3Ccircle cx='3.5' cy='3.5' r='.6' fill='%231f2937'/%3E%3Cpath d='M23.5 20.5L25.5 22.5 22.5 25.5 20.5 23.5z' fill='%23fca5a5' stroke='%23991b1b' stroke-width='.3'/%3E%3Cline x1='12' y1='11' x2='20' y2='19' stroke='white' stroke-width='.5' opacity='.4' stroke-linecap='round'/%3E%3C/svg%3E") 3 3, crosshair !important;
+}
+
+/* Highlighter: yellow marker, right-hand grip — tip upper-left, body to lower-right */
+body.presenter-tool-highlighter,
+body.presenter-tool-highlighter * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M12.5 7.5L24.5 19.5 19.5 24.5 7.5 12.5z' fill='%23f59e0b' stroke='%2392400e' stroke-width='.4' stroke-linejoin='round'/%3E%3Cpath d='M12.5 7.5L7 4 4 7 7.5 12.5z' fill='%23fbbf24' stroke='%2392400e' stroke-width='.3' stroke-linejoin='round'/%3E%3Cline x1='7' y1='4' x2='4' y2='7' stroke='%2378350f' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M24.5 19.5L26.5 21.5 21.5 26.5 19.5 24.5z' fill='%23fde68a' stroke='%2392400e' stroke-width='.3'/%3E%3Cline x1='14' y1='13' x2='21' y2='20' stroke='white' stroke-width='.6' opacity='.3' stroke-linecap='round'/%3E%3C/svg%3E") 5 5, crosshair !important;
+}
+
+/* Eraser: hide native cursor (custom circle drawn on canvas) */
+body.presenter-tool-eraser,
+body.presenter-tool-eraser * {
+  cursor: none !important;
+}
+
+/* Toolbar override — higher specificity wins over tool cursors above */
+body.presenter-active .presenter-toolbar,
+body.presenter-active .presenter-toolbar * {
+  cursor: default !important;
+}
+
+/* ─── Toolbar ─── */
+
+.presenter-toolbar {
+  position: fixed;
+  top: 50px;
+  right: 12px;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: rgba(30, 30, 30, 0.88);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.presenter-tool-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.presenter-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+.presenter-tool-btn.active {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.presenter-tool-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.presenter-toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+
+/* Eraser cursor — DOM element, not drawn on canvas (avoids clipPath clipping) */
+.presenter-eraser-cursor {
+  position: fixed;
+  border-radius: 50%;
+  background: rgba(244, 114, 182, 0.35);
+  border: 1.5px solid rgba(244, 114, 182, 0.8);
+  pointer-events: none;
+  z-index: 10000;
+  display: none;
+  transform: translateZ(0); /* GPU-accelerated positioning */
+}
+
+/* Color indicator dot on pen/highlighter buttons */
+.presenter-color-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.presenter-close-btn:hover {
+  background: rgba(239, 68, 68, 0.3) !important;
+  color: #ef4444 !important;
+  opacity: 1 !important;
+}

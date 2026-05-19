@@ -1,0 +1,21 @@
+# Build output
+main.js
+
+# Dependencies
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# npm debug
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo

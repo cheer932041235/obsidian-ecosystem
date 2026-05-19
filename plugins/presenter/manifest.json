@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-presenter",
+  "name": "Presenter",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Draw, highlight, and annotate on your notes for teaching and presentations",
+  "author": "cheer932041235",
+  "authorUrl": "https://github.com/cheer932041235",
+  "isDesktopOnly": true
+}
