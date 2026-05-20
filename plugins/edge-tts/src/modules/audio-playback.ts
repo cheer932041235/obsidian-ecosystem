@@ -53,6 +53,12 @@ export class AudioPlaybackManager {
   private isSwitchingToFullFile = false;
   private hasStartedCurrentPlayback = false;
   private streamedPlaybackTimeBeforeSwitch = 0;
+  private isProgressiveChunkPlayback = false;
+  private progressiveChunkBuffers: Array<Uint8Array | null | undefined> = [];
+  private progressiveGenerationDone = false;
+  private progressivePlaybackIndex = 0;
+  private progressiveTotalChunks = 0;
+  private progressiveObjectUrl: string | null = null;
 
   // Queue change notification callback
   private queueChangeCallback?: () => void;
@@ -145,6 +151,11 @@ export class AudioPlaybackManager {
     };
 
     this.audioElement.onended = () => {
+      if (this.isProgressiveChunkPlayback) {
+        void this.playNextProgressiveChunk(this.currentPlaybackId);
+        return;
+      }
+
       if (this.isStreamingWithMSE && this.mediaSource && this.mediaSource.readyState === 'ended') {
         // This is the end of the MSE stream, before switching to the full file.
         // The actual "finished reading" will happen after the full file plays or if no switch occurs.
@@ -1045,6 +1056,15 @@ export class AudioPlaybackManager {
     this.isSwitchingToFullFile = false;
     this.hasStartedCurrentPlayback = false;
     this.streamedPlaybackTimeBeforeSwitch = 0;
+    this.isProgressiveChunkPlayback = false;
+    this.progressiveChunkBuffers = [];
+    this.progressiveGenerationDone = false;
+    this.progressivePlaybackIndex = 0;
+    this.progressiveTotalChunks = 0;
+    if (this.progressiveObjectUrl) {
+      URL.revokeObjectURL(this.progressiveObjectUrl);
+      this.progressiveObjectUrl = null;
+    }
     this.mseAudioQueue = [];
     this.isAppendingBuffer = false;
     this.cancelSleepTimer(); // Cancel sleep timer when stopping
@@ -1498,6 +1518,11 @@ export class AudioPlaybackManager {
         new Notice(`Playing ${textChunks.length} chunks of text...`);
       }
 
+      if (!useMSE) {
+        await this.processChunkedFallbackProgressive(textChunks, activePlaybackAttemptId);
+        return;
+      }
+
       // Process each chunk sequentially
       for (let i = 0; i < textChunks.length; i++) {
         if (this.currentPlaybackId !== activePlaybackAttemptId) {
@@ -1606,6 +1631,241 @@ export class AudioPlaybackManager {
     }
 
     return chunks;
+  }
+
+  private async processChunkedFallbackProgressive(textChunks: string[], activePlaybackAttemptId: number): Promise<void> {
+    this.isProgressiveChunkPlayback = true;
+    this.progressiveChunkBuffers = new Array(textChunks.length);
+    this.progressiveGenerationDone = false;
+    this.progressivePlaybackIndex = 0;
+    this.progressiveTotalChunks = textChunks.length;
+    this.completeMp3BufferArray = [];
+    this.updateStatusBarCallback(true);
+
+    const generationPromise = this.generateProgressiveChunks(textChunks, activePlaybackAttemptId);
+
+    await this.waitForProgressiveChunk(0, activePlaybackAttemptId);
+    if (this.currentPlaybackId !== activePlaybackAttemptId) return;
+
+    await this.playNextProgressiveChunk(activePlaybackAttemptId);
+    await generationPromise;
+  }
+
+  private async generateProgressiveChunks(textChunks: string[], activePlaybackAttemptId: number): Promise<void> {
+    for (let i = 0; i < textChunks.length; i++) {
+      if (this.currentPlaybackId !== activePlaybackAttemptId) return;
+
+      try {
+        const chunkBuffer = await this.generateProgressiveChunkBuffer(textChunks[i], activePlaybackAttemptId);
+        if (this.currentPlaybackId !== activePlaybackAttemptId) return;
+        this.progressiveChunkBuffers[i] = chunkBuffer;
+      } catch (error) {
+        console.error(`Error generating playback chunk ${i + 1}:`, error);
+        this.progressiveChunkBuffers[i] = null;
+        if (shouldShowNotices(this.settings)) {
+          new Notice(`第 ${i + 1} 段语音生成失败，已跳过。`);
+        }
+      }
+
+      if (i < textChunks.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    this.progressiveGenerationDone = true;
+  }
+
+  private async generateProgressiveChunkBuffer(chunk: string, activePlaybackAttemptId: number): Promise<Uint8Array> {
+    const tts = new EdgeTTSClient(this.settings.proxyUrl);
+    const voiceToUse = this.settings.customVoice.trim() || this.settings.selectedVoice;
+    await tts.setMetadata(voiceToUse, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+
+    const prosodyOptions = new ProsodyOptions();
+    prosodyOptions.rate = this.settings.playbackSpeed;
+
+    const readable = tts.toStream(chunk, prosodyOptions);
+    const chunkBuffers: Uint8Array[] = [];
+
+    return new Promise<Uint8Array>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        reject(new Error('Timeout generating playback chunk'));
+      }, 120000);
+
+      readable.on('data', (data: Uint8Array) => {
+        if (this.currentPlaybackId !== activePlaybackAttemptId) return;
+        chunkBuffers.push(data);
+        this.completeMp3BufferArray.push(data);
+      });
+
+      readable.on('end', () => {
+        window.clearTimeout(timeout);
+        resolve(this.concatUint8Arrays(chunkBuffers));
+      });
+
+      try {
+        (readable as any).on('error', (error: any) => {
+          window.clearTimeout(timeout);
+          reject(error);
+        });
+      } catch (error) {
+      }
+    });
+  }
+
+  private concatUint8Arrays(chunks: Uint8Array[]): Uint8Array {
+    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const output = new Uint8Array(totalLength);
+    let offset = 0;
+
+    for (const chunk of chunks) {
+      output.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    return output;
+  }
+
+  private async waitForProgressiveChunk(index: number, activePlaybackAttemptId: number): Promise<void> {
+    while (
+      this.currentPlaybackId === activePlaybackAttemptId &&
+      this.progressiveChunkBuffers[index] === undefined &&
+      !this.progressiveGenerationDone
+    ) {
+      if (!this.settings.disablePlaybackControlPopover) {
+        this.updateFloatingPlayerCallback({
+          currentTime: this.audioElement.currentTime || 0,
+          duration: this.audioElement.duration || 0,
+          isPlaying: false,
+          isLoading: true,
+        });
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+
+  private async playNextProgressiveChunk(activePlaybackAttemptId: number): Promise<void> {
+    if (this.currentPlaybackId !== activePlaybackAttemptId) return;
+
+    if (this.progressiveObjectUrl) {
+      URL.revokeObjectURL(this.progressiveObjectUrl);
+      this.progressiveObjectUrl = null;
+    }
+
+    while (this.progressivePlaybackIndex < this.progressiveTotalChunks) {
+      await this.waitForProgressiveChunk(this.progressivePlaybackIndex, activePlaybackAttemptId);
+      if (this.currentPlaybackId !== activePlaybackAttemptId) return;
+
+      const buffer = this.progressiveChunkBuffers[this.progressivePlaybackIndex];
+      this.progressivePlaybackIndex++;
+
+      if (!buffer) continue;
+
+      this.playProgressiveChunkBuffer(buffer, activePlaybackAttemptId);
+      return;
+    }
+
+    if (!this.progressiveGenerationDone) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      await this.playNextProgressiveChunk(activePlaybackAttemptId);
+      return;
+    }
+
+    await this.finishProgressiveChunkPlayback(activePlaybackAttemptId);
+  }
+
+  private playProgressiveChunkBuffer(buffer: Uint8Array, activePlaybackAttemptId: number): void {
+    const audioBlob = new Blob([toArrayBuffer(buffer)], { type: 'audio/mpeg' });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    this.progressiveObjectUrl = audioUrl;
+
+    const onLoadedMetadata = () => {
+      if (this.currentPlaybackId !== activePlaybackAttemptId) {
+        URL.revokeObjectURL(audioUrl);
+        return;
+      }
+
+      if (!this.settings.disablePlaybackControlPopover) {
+        this.updateFloatingPlayerCallback({
+          currentTime: 0,
+          duration: this.audioElement.duration,
+          isPlaying: false,
+          isLoading: false,
+        });
+      }
+
+      const playPromise = this.audioElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error('Error starting progressive chunk playback:', error);
+          if (this.settings.showNotices) new Notice('Error starting audio playback.');
+          this.stopPlaybackInternal();
+        });
+      }
+
+      this.audioElement.removeEventListener('loadedmetadata', onLoadedMetadata);
+      this.audioElement.removeEventListener('error', onError);
+    };
+
+    const onError = () => {
+      this.audioElement.removeEventListener('loadedmetadata', onLoadedMetadata);
+      this.audioElement.removeEventListener('error', onError);
+      URL.revokeObjectURL(audioUrl);
+      if (this.progressiveObjectUrl === audioUrl) {
+        this.progressiveObjectUrl = null;
+      }
+      void this.playNextProgressiveChunk(activePlaybackAttemptId);
+    };
+
+    this.audioElement.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+    this.audioElement.addEventListener('error', onError, { once: true });
+    this.audioElement.src = audioUrl;
+    this.audioElement.load();
+  }
+
+  private async finishProgressiveChunkPlayback(activePlaybackAttemptId: number): Promise<void> {
+    if (this.currentPlaybackId !== activePlaybackAttemptId) return;
+
+    this.isProgressiveChunkPlayback = false;
+    this.progressiveGenerationDone = false;
+    this.updateStatusBarCallback(false);
+
+    if (this.progressiveObjectUrl) {
+      URL.revokeObjectURL(this.progressiveObjectUrl);
+      this.progressiveObjectUrl = null;
+    }
+
+    if (shouldShowNotices(this.settings)) new Notice('Finished reading aloud.');
+
+    if (this.isPlayingFromQueue) {
+      setTimeout(() => this.playNextInQueue(), 1000);
+      return;
+    }
+
+    if (this.settings.enableReplayOption && this.completeMp3BufferArray.length > 0) {
+      try {
+        const completeBuffer = Buffer.concat(this.completeMp3BufferArray);
+        const tempFilePath = await this.fileManager.saveTempAudioFile(completeBuffer);
+        if (tempFilePath) {
+          this.audioElement.src = this.fileManager.getTempAudioFileResourcePath() || '';
+          this.audioElement.load();
+        }
+      } catch (error) {
+        console.warn('Failed to save progressive playback temp audio:', error);
+      }
+    }
+
+    if (this.settings.enableReplayOption && !this.settings.disablePlaybackControlPopover) {
+      this.isPaused = true;
+      this.updateFloatingPlayerCallback({
+        currentTime: this.audioElement.duration || 0,
+        duration: this.audioElement.duration || 0,
+        isPlaying: false,
+        isLoading: false,
+      });
+    } else {
+      this.cleanupTemporaryAudioFile();
+      this.resetPlaybackStateAndHidePlayer();
+    }
   }
 
   /**
