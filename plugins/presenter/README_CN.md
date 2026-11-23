@@ -97,4 +97,4 @@ npm run build        # 生产构建（类型检查 + 压缩）
 
 ## 许可证
 
-[MIT](LICENSE) © 疏锦行
+[MIT](LICENSE) © cheer932041235

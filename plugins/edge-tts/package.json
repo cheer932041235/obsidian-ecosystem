@@ -15,7 +15,7 @@
 		"Text-to-Speech",
 		"Read Aloud"
 	],
-	"author": "疏锦行",
+	"author": "cheer932041235",
 	"license": "AGPL-3.0",
 	"devDependencies": {
 		"@types/node": "^16.11.6",

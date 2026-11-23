@@ -154,7 +154,7 @@ export class PlaybackPanelView extends ItemView {
     const header = root.createDiv({ cls: 'edge-tts-panel-header' });
     const titleWrap = header.createDiv();
     titleWrap.createEl('h2', { text: '语音朗读面板' });
-    titleWrap.createEl('p', { text: '疏锦行定制版 · Edge TTS' });
+    titleWrap.createEl('p', { text: 'Edge TTS · 语音播放' });
     const badge = header.createDiv({ cls: 'edge-tts-panel-badge', text: this.getStatusText() });
     if (this.playbackState.isPlaying) badge.addClass('is-playing');
     if (this.playbackState.isLoading) badge.addClass('is-loading');

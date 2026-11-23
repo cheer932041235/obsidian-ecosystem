@@ -96,4 +96,4 @@ npm run build        # Production build (type-check + minified)
 
 ## License
 
-[MIT](LICENSE) © 疏锦行
+[MIT](LICENSE) © cheer932041235
